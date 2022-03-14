@@ -20,7 +20,7 @@ public class DiscordMessageForwarder : IMessageForwarder
     public async Task Forward(Message message, string url, IReadOnlyDictionary<string, string> parameters)
     {
         var username = message.From.FirstOrDefault()?.Name;
-        
+
         var requestBody = new JObject
         {
             ["username"] = string.IsNullOrEmpty(username) ? null : username,
@@ -29,7 +29,7 @@ public class DiscordMessageForwarder : IMessageForwarder
                 new JObject()
                 {
                     ["title"] = message.Subject,
-                    ["description"] = message.TextBody.Length > 4000 ? (message.TextBody.Substring(0, 4000) + "...") : message.TextBody,
+                    ["description"] = message.GetBriefText(4000),
                     ["url"] = url,
                     ["color"] = 0xff0000,
                     ["fields"] = new JArray()

@@ -20,7 +20,7 @@ Log.Logger = new LoggerConfiguration()
     .CreateBootstrapLogger();
 
 var builder = WebApplication.CreateBuilder(args);
-var configuration = builder.Services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+var configuration = builder.Configuration;
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

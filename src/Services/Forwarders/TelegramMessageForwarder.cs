@@ -18,7 +18,7 @@ public class TelegramMessageForwarder : IMessageForwarder
     public async Task Forward(Message message, string url, IReadOnlyDictionary<string, string> parameters)
     {
         var text = $"*{message.Subject}*\n" +
-                (message.TextBody.Length > 1000 ? (message.TextBody.Substring(0, 1000) + "...") : message.TextBody) +
+                message.GetBriefText(1000) +
                 "\n\n*From:* " + string.Join("; ", message.From.Select(addr => addr.ToString())) +
                 "\n*To:* " + string.Join("; ", message.To.Select(addr => addr.ToString())) +
                 "\n*Date:* " + message.DatedAt +

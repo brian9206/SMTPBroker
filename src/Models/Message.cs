@@ -1,4 +1,6 @@
-﻿namespace SMTPBroker.Models;
+﻿using HtmlAgilityPack;
+
+namespace SMTPBroker.Models;
 
 public class Message
 {
@@ -11,4 +13,16 @@ public class Message
     public ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
     public DateTime DatedAt { get; set; }
     public DateTime ExpireAt { get; set; }
+
+    public string GetBriefText(int maxLength = int.MaxValue)
+    {
+        var htmlDoc = new HtmlDocument();
+        htmlDoc.LoadHtml(string.IsNullOrEmpty(TextBody) ? HTMLBody : TextBody);
+        var text = htmlDoc.DocumentNode.InnerText;
+
+        if (text.Length > maxLength)
+            return text.Substring(0, maxLength) + "...";
+
+        return text;
+    }
 }

@@ -24,7 +24,7 @@ public class BasicAuthMiddleware : IMiddleware
         if (authHeader != null && authHeader.StartsWith("Basic "))
         {
             // Get the encoded username and password
-            var encodedUsernamePassword = authHeader.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries)[1]?.Trim();
+            var encodedUsernamePassword = authHeader.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries)[1].Trim();
 
             // Decode from Base64 to string
             var decodedUsernamePassword = Encoding.UTF8.GetString(Convert.FromBase64String(encodedUsernamePassword));
