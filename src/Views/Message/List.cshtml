@@ -1,0 +1,36 @@
+﻿@model Message[]
+@{
+    var messages = Model!;
+    ViewData["Title"] = "Recent messages";
+}
+<h3 class="fw-bold mt-4">@ViewData["Title"]</h3>
+
+<div class="table-responsive mt-4">
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>Subject</th>
+            <th>From</th>
+            <th>Dated at</th>
+        </tr>
+        </thead>
+        
+        <tbody>
+        
+        @foreach (var message in messages)
+        {
+            <tr role="button" onclick="location.href = '@Url.Action("View", new { messageId = message.Id })'">
+                <td>@message.Subject</td>
+                <td>
+                    @foreach (var addr in message.From)
+                    {
+                        @addr <br />
+                    }
+                </td>
+                <td>@message.DatedAt.ToLocalTime()</td>
+            </tr>
+        }
+        
+        </tbody>
+    </table>
+</div>

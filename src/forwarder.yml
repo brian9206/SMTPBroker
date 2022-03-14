@@ -1,0 +1,10 @@
+﻿- name: Discord
+  forwarder: discord
+  parameters:
+    webhook: YOUR_WEB_HOOK_URL
+
+#- name: Telegram
+#  forwarder: telegram
+#  parameters:
+#    bot_token: YOUR_BOT_TOKEN
+#    chat_id: YOUR_CHAT_ID

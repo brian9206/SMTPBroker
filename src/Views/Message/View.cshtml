@@ -1,0 +1,70 @@
+﻿@using System.Text.RegularExpressions
+@model Message
+@{
+    var message = Model!;
+    ViewData["Title"] = message.Subject;
+}
+
+<a asp-action="List">&laquo; Recent messages</a>
+
+<h3 class="fw-bold mt-4 mb-1">@ViewData["Title"]</h3>
+<div class="text-muted" style="font-size: 11px">@@ @message.DatedAt.ToLocalTime()</div>
+
+<div class="table-responsive">
+    <table class="table">
+        <tr>
+            <td class="fw-bold">From</td>
+            <td>
+                @foreach (var addr in message.From)
+                {
+                    @addr
+                    <br/>
+                }
+            </td>
+        </tr>
+        <tr>
+            <td class="fw-bold">To</td>
+            <td>
+                @foreach (var addr in message.To)
+                {
+                    @addr
+                    <br/>
+                }
+            </td>
+        </tr>
+    </table>
+</div>
+
+@if (string.IsNullOrEmpty(message.HTMLBody))
+{
+    @message.TextBody
+}
+else
+{
+    @Html.Raw(Regex.Replace(message.HTMLBody, "<script.*?</script>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase))
+}
+
+@if (message.Attachments.Any())
+{
+    <hr class="mt-5"/>
+
+    <h5>Attachment(s)</h5>
+
+    <div class="table-responsive">
+        <table class="table">
+            @foreach (var attachment in message.Attachments)
+            {
+                <tr>
+                    <td class="border-0">
+                        <a asp-action="DownloadAttachment"
+                           asp-route-messageId="@message.Id"
+                           asp-route-attachmentId="@attachment.Id"
+                           target="_blank">
+                            @attachment.FileName
+                        </a>
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+}
