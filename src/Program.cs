@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
@@ -17,10 +20,18 @@ Log.Logger = new LoggerConfiguration()
     .CreateBootstrapLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+var configuration = builder.Services.BuildServiceProvider().GetRequiredService<IConfiguration>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(configuration.GetValue<string>("DataDir")))
+    .UseCryptographicAlgorithms(new AuthenticatedEncryptorConfiguration()
+    {
+        EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
+        ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
+    });
 
 builder.Services.AddDbContext<ApplicationDbContext>();
 builder.Services.AddHostedService<CleanExpiredMessageService>();
@@ -42,7 +53,6 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
     .WriteTo.Console());
 
 var app = builder.Build();
-var configuration = app.Services.GetRequiredService<IConfiguration>();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -90,6 +100,7 @@ using (var scope = serviceScopeFactory.CreateScope())
     context.Database.Migrate();
 }
 
+Console.WriteLine("App started.");
 app.Run();
 
 return 0;

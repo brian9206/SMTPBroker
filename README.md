@@ -23,8 +23,6 @@ First, create `forwarder.yml`.
 
 Then, create data directory and docker container.
 ```bash
-mkdir data
-
 docker run -d \
   --name=smtpbroker \
   --restart=unless-stopped \

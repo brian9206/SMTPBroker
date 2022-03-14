@@ -27,6 +27,7 @@ public class ApplicationDbContext : DbContext
         if (!Directory.Exists(dataDir))
             Directory.CreateDirectory(dataDir);
         
-        optionsBuilder.UseSqlite("Data Source=" + Path.Combine(dataDir, "_app.db"));
+        optionsBuilder.UseSqlite("Data Source=" + Path.Combine(dataDir, "_app.db"), 
+            p => p.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
     }
 }
