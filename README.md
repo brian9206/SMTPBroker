@@ -70,6 +70,7 @@ You can set up multiple forwarders and let them to handle different "From" or "T
 
 The above example will make all email from `synology@example.com` notified in Discord, others to Telegram.
 
+Note: you can use wildcard like `*@example.com` and `to` also works.
 
 ## How to obtain token in forwarder.yml?
 
