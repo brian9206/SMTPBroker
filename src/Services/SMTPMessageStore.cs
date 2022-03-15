@@ -138,7 +138,7 @@ public class SMTPMessageStore : MessageStore
                 continue;
 
             _backgroundJobClient.Enqueue<MessageRouter>(router => router.ForwardMessage(forwarderConfig, message));
-            _logger.LogInformation();
+            _logger.LogTrace("Scheduled message forward {Name} by {Forwarder}", forwarderConfig.Name, forwarderConfig.Forwarder);
             
             if (forwarderConfig.Rules.Stop)
                 break;

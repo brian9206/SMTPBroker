@@ -81,18 +81,21 @@ app.UseRouting();
 
 app.UseAuthorization();
 
-if (configuration.GetValue("Web:Auth", false))
+var isWebAuthEnable = configuration.GetValue("Web:Auth", false);
+if (isWebAuthEnable)
 {
     app.UseMiddleware<BasicAuthMiddleware>();
 }
-
-app.UseHangfireDashboard();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.MapHangfireDashboard();
+if (app.Environment.IsDevelopment() || isWebAuthEnable)
+{
+    app.UseHangfireDashboard();
+    app.MapHangfireDashboard();
+}
 
 // check forwarder config
 try
