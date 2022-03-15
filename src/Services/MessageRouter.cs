@@ -39,6 +39,7 @@ public class MessageRouter
     }
     
     [AutomaticRetry(Attempts = 1000)]
+    [JobDisplayName("Forward message")]
     public async Task ForwardMessage(ForwarderConfig forwarderConfig, Message message)
     {
         var forwarder = CreateMessageForwarder(forwarderConfig.Forwarder);
