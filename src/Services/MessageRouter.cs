@@ -53,6 +53,7 @@ public class MessageRouter
         _logger.LogTrace("Start forwarding to {Name} by {Forwarder}", forwarderConfig.Name, forwarderConfig.Forwarder);
         
         await forwarder.Forward(message, GetMessageUrl(message), forwarderConfig.Parameters);
+        
         _logger.LogTrace("Finished forwarding to {Name} by {Forwarder}", forwarderConfig.Name,
             forwarderConfig.Forwarder);
     }

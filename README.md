@@ -21,14 +21,14 @@ First, create `forwarder.yml`.
 #    chat_id: YOUR_CHAT_ID
 ```
 
-Then, create data directory and docker container.
+Then, create docker container.
 ```bash
 docker run -d \
   --name=smtpbroker \
   --restart=unless-stopped \
   -e Web__Url=https://your-ip:8443 \
-  -v ./forwarder.yml:/forwarder.yml:ro \
-  -v ./data:/data \
+  -v $PWD/forwarder.yml:/forwarder.yml:ro \
+  -v $PWD/data:/data \
   -p 8443:443 \
   -p 127.0.0.1:25:25 \
   brian9206/smtpbroker:latest
@@ -69,6 +69,13 @@ You can set up multiple forwarders and let them to handle different "From" or "T
 The above example will make all email from `synology@example.com` notified in Discord, others to Telegram.
 
 Note: you can use wildcard like `*@example.com` and `to:` rule also works.
+
+### HTTPS Certificate
+By default, the server will automatically generate a self-signed certificate on startup. If you want to install your own certificate, use the following docker parameter:
+```bash
+-v $PWD/server.pfx:/ssl/server.pfx:ro \
+-e ASPNETCORE_Kestrel__Certificates__Default__Password=YOUR_PFX_PASSPHRASE \
+```
 
 ## How to obtain token in forwarder.yml?
 

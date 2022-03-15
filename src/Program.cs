@@ -93,7 +93,10 @@ app.MapControllerRoute(
 
 if (app.Environment.IsDevelopment() || isWebAuthEnable)
 {
-    app.UseHangfireDashboard();
+    app.UseHangfireDashboard("/hangfire", new DashboardOptions
+    {
+        Authorization = new [] { new HangfireDashboardAuthorizationFilter() }
+    });
     app.MapHangfireDashboard();
 }
 

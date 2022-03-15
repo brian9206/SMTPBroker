@@ -1,9 +1,21 @@
-﻿@{
+﻿@inject IWebHostEnvironment _webHostEnvironment
+@inject IConfiguration _configuration
+@{
     ViewData["Title"] = "Home Page";
+
+    var isWebAuthEnable = _configuration.GetValue("Web:Auth", false);
 }
 
 <div class="text-center mt-5">
     <h1 class="display-4">It works!</h1>
     <p>Sit back and wait for the awesome notifications.</p>
-    <a asp-controller="Message" asp-action="List" class="btn btn-primary mt-5">View recent messages</a>
+
+    <div class="mt-5">
+        <a asp-controller="Message" asp-action="List" class="btn btn-primary mr-2">View Recent Messages</a>
+
+        @if (_webHostEnvironment.IsDevelopment() || isWebAuthEnable)
+        {
+            <a href="/hangfire" class="btn btn-secondary">View Scheduler Dashboard</a>
+        }
+    </div>
 </div>

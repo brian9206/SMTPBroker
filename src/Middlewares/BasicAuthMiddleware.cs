@@ -20,7 +20,11 @@ public class BasicAuthMiddleware : IMiddleware
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
-        string authHeader = context.Request.Headers["Authorization"];
+        string? authHeader = context.Request.Headers["Authorization"];
+
+        if (string.IsNullOrEmpty(authHeader))
+            authHeader = context.Request.Cookies["auth"];
+
         if (authHeader != null && authHeader.StartsWith("Basic "))
         {
             // Get the encoded username and password
@@ -36,6 +40,12 @@ public class BasicAuthMiddleware : IMiddleware
             // Check if login is correct
             if (IsAuthorized(username, password))
             {
+                context.Response.Cookies.Append("auth", authHeader, new CookieOptions()
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.Strict
+                });
+                
                 await next.Invoke(context);
                 return;
             }
