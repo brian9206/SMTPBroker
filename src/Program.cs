@@ -1,3 +1,5 @@
+using Hangfire;
+using Hangfire.Storage.SQLite;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
@@ -42,7 +44,16 @@ builder.Services.AddTransient<IUserAuthenticator, SMTPAuthenticator>();
 
 builder.Services.AddTransient<IMessageForwarder, DiscordMessageForwarder>();
 builder.Services.AddTransient<IMessageForwarder, TelegramMessageForwarder>();
-builder.Services.AddTransient<MessageForwarderFactory>();
+builder.Services.AddTransient<MessageRouter>();
+
+builder.Services.AddHangfire(cfg => cfg
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseSQLiteStorage(Path.Combine(configuration.GetValue<string>("DataDir"), "_hangfire.db"),
+        new SQLiteStorageOptions()));
+
+builder.Services.AddHangfireServer();
 
 builder.Services.AddSingleton<BasicAuthMiddleware>();
 
@@ -75,9 +86,13 @@ if (configuration.GetValue("Web:Auth", false))
     app.UseMiddleware<BasicAuthMiddleware>();
 }
 
+app.UseHangfireDashboard();
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapHangfireDashboard();
 
 // check forwarder config
 try

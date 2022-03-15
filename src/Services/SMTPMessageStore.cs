@@ -1,15 +1,13 @@
 ﻿using System.Buffers;
 using System.Web;
+using Hangfire;
 using MimeKit;
-using SMTPBroker.Interfaces;
 using SMTPBroker.Models;
 using SMTPBroker.Persistence;
 using SMTPBroker.Utilities;
 using SmtpServer;
 using SmtpServer.Protocol;
 using SmtpServer.Storage;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace SMTPBroker.Services;
@@ -19,17 +17,17 @@ public class SMTPMessageStore : MessageStore
     private readonly ILogger _logger;
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly IConfiguration _configuration;
-    private readonly MessageForwarderFactory _messageForwarderFactory;
+    private readonly IBackgroundJobClient _backgroundJobClient;
 
     public SMTPMessageStore(ILogger<SMTPMessageStore> logger, 
         IServiceScopeFactory serviceScopeFactory, 
-        IConfiguration configuration, 
-        MessageForwarderFactory messageForwarderFactory)
+        IConfiguration configuration,
+        IBackgroundJobClient backgroundJobClient)
     {
         _logger = logger;
         _serviceScopeFactory = serviceScopeFactory;
         _configuration = configuration;
-        _messageForwarderFactory = messageForwarderFactory;
+        _backgroundJobClient = backgroundJobClient;
     }
 
     public override async Task<SmtpResponse> SaveAsync(ISessionContext context, IMessageTransaction transaction, ReadOnlySequence<byte> buffer,
@@ -130,12 +128,7 @@ public class SMTPMessageStore : MessageStore
         await db.Messages.AddAsync(message, CancellationToken.None);
         await db.SaveChangesAsync(CancellationToken.None);
         _logger.LogTrace("Message saved in DB");
-        
-        // assemble URL
-        var messageUrl = _configuration.GetValue<string>("Web:Url", "http://fix-your-appsettings");
-        if (!messageUrl.EndsWith("/")) messageUrl += "/";
-        messageUrl += "message/" + HttpUtility.UrlEncode(message.Id.ToString()) + "/";
-        
+
         // load yaml
         var forwarderConfigs = await ForwarderConfigParser.Parse(_configuration);
 
@@ -143,29 +136,10 @@ public class SMTPMessageStore : MessageStore
         {
             if (!forwarderConfig.Rules.IsMatch(message.From, message.To))
                 continue;
+
+            _backgroundJobClient.Enqueue<MessageRouter>(router => router.ForwardMessage(forwarderConfig, message));
+            _logger.LogInformation();
             
-            var forwarder = _messageForwarderFactory.Create(forwarderConfig.Forwarder);
-
-            if (forwarder == null)
-            {
-                _logger.LogWarning("Ignored forwarding to {Name}. Unknown forwarder: {Forwarder}", forwarderConfig.Name, forwarderConfig.Forwarder);
-                continue;
-            }
-            
-            _logger.LogTrace("Start forwarding to {Name} by {Forwarder}", forwarderConfig.Name, forwarderConfig.Forwarder);
-
-            try
-            {
-                await forwarder.Forward(message, messageUrl, forwarderConfig.Parameters);
-                _logger.LogTrace("Finished forwarding to {Name} by {Forwarder}", forwarderConfig.Name,
-                    forwarderConfig.Forwarder);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Unable to forward to {Name} by {Forwarder}", forwarderConfig.Name,
-                    forwarderConfig.Forwarder);
-            }
-
             if (forwarderConfig.Rules.Stop)
                 break;
         }

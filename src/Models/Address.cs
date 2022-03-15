@@ -1,4 +1,6 @@
-﻿namespace SMTPBroker.Models;
+﻿using Newtonsoft.Json;
+
+namespace SMTPBroker.Models;
 
 public record Address
 {
@@ -6,6 +8,7 @@ public record Address
     public string Email { get; private set; }
     public string Name { get; private set; }
 
+    [JsonConstructor]
     public Address(Guid id, string email, string name)
     {
         Id = id;
