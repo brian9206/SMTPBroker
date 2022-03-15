@@ -1,4 +1,6 @@
-﻿using System.Web;
+﻿using System.Text;
+using System.Web;
+using Newtonsoft.Json.Linq;
 using SMTPBroker.Attributes;
 using SMTPBroker.Models;
 using IMessageForwarder = SMTPBroker.Interfaces.IMessageForwarder;
@@ -17,27 +19,27 @@ public class TelegramMessageForwarder : IMessageForwarder
 
     public async Task Forward(Message message, string url, IReadOnlyDictionary<string, string> parameters)
     {
-        var text = $"*{message.Subject}*\n" +
-                message.GetBriefText(1000) +
-                "\n\n*From:* " + string.Join("; ", message.From.Select(addr => addr.ToString())) +
-                "\n*To:* " + string.Join("; ", message.To.Select(addr => addr.ToString())) +
-                "\n*Date:* " + message.DatedAt +
-                "\n*Attachment:* " + (message.Attachments.Any() ? $"{message.Attachments.Count} attachment(s)" : "N/A") + 
-                "\n\n" + $"[View full message]({url})";
+        var text = $"<b>{message.Subject}</b>\n\n" +
+                message.GetBriefText(3000) +
+                "\n\n<b>From:</b> " + string.Join("; ", message.From.Select(addr => addr.ToString())) +
+                "\n<b>To:</b> " + string.Join("; ", message.To.Select(addr => addr.ToString())) +
+                "\n<b>Date:</b> " + message.DatedAt +
+                "\n<b>Attachment:</b> " + (message.Attachments.Any() ? $"{message.Attachments.Count} attachment(s)" : "N/A") + 
+                "\n\n" + $"<a href=\"{url}\">[View full message]</a>";
         
-        var query = HttpUtility.ParseQueryString(string.Empty);
-        query.Add("chat_id", parameters["chat_id"]);
-        query.Add("parse_mode", "markdown");
-        query.Add("text", text);
-
-        var request = new UriBuilder(
-            $"https://api.telegram.org/bot{HttpUtility.UrlEncode(parameters["bot_token"])}/sendMessage")
+        var requestBody = new JObject()
         {
-            Query = query.ToString()
+            ["chat_id"] = parameters["chat_id"],
+            ["parse_mode"] = "html",
+            ["text"] = text
         };
 
         using var http = new HttpClient();
-        var response = await http.GetAsync(request.ToString());
+        var response = await http.PostAsync($"https://api.telegram.org/bot{HttpUtility.UrlEncode(parameters["bot_token"])}/sendMessage", 
+            new StringContent(requestBody.ToString(), Encoding.UTF8, "application/json"));
+        
+        _logger.LogTrace("Response from telegram {ResponseBody}", await response.Content.ReadAsStringAsync());
+
         response.EnsureSuccessStatusCode();
         
         _logger.LogInformation("Telegram Bot message sent. {MessageId}", message.Id);

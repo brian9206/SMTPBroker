@@ -37,7 +37,7 @@
 
 @if (string.IsNullOrEmpty(message.HTMLBody))
 {
-    @message.TextBody
+    <pre>@message.TextBody</pre>
 }
 else
 {
