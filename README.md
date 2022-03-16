@@ -13,6 +13,7 @@ First, create `forwarder.yml`.
   forwarder: discord
   parameters:
     webhook: YOUR_WEB_HOOK_URL
+    content: @everyone
 
 #- name: Telegram
 #  forwarder: telegram
@@ -58,6 +59,7 @@ You can set up multiple forwarders and let them to handle different "From" or "T
     stop: true
   parameters:
     webhook: DISCORD_WEB_HOOK
+    content: @everyone
 
 - name: Telegram
   forwarder: telegram

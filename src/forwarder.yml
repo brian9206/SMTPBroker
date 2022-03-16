@@ -2,6 +2,7 @@
   forwarder: discord
   parameters:
     webhook: YOUR_WEB_HOOK_URL
+    content: @everyone
 
 #- name: Telegram
 #  forwarder: telegram

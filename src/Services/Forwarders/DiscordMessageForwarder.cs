@@ -24,6 +24,7 @@ public class DiscordMessageForwarder : IMessageForwarder
         var requestBody = new JObject
         {
             ["username"] = string.IsNullOrEmpty(username) ? null : username,
+            ["content"] = parameters.ContainsKey("content") ? parameters["content"] : string.Empty,
             ["embeds"] = new JArray
             {
                 new JObject()
